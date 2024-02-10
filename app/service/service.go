@@ -6,7 +6,11 @@ import (
 )
 
 // Application services
-type Service interface{}
+type Service interface {
+	//User services
+
+	UserService
+}
 
 type service struct {
 	db     db.Database

@@ -17,38 +17,38 @@ type (
 
 	User struct {
 		Id        primitive.ObjectID `bson:"_id"`
-		firstName string             `bson:"first_name"`
-		lastName  string             `bson:"last_name"`
-		email     string             `bson:"email"`
-		password  string             `bson:"password"`
+		FirstName string             `bson:"first_name"`
+		LastName  string             `bson:"last_name"`
+		Email     string             `bson:"email"`
+		Password  string             `bson:"password"`
 
-		createdAt primitive.DateTime `createdAt:"password"`
-		updatedAt primitive.DateTime `updatedAt:"password"`
+		CreatedAt primitive.DateTime `createdAt:"password"`
+		UpdatedAt primitive.DateTime `updatedAt:"password"`
 	}
 )
 
 func (u *User) BeforeCreate() error {
 	now := primitive.NewDateTimeFromTime(time.Now())
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.password), bcrypt.MaxCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
-	u.password = string(hashedPassword)
+	u.Password = string(hashedPassword)
 
-	u.createdAt = now
-	u.createdAt = now
+	u.Id = primitive.NewObjectID()
+	u.CreatedAt = now
+	u.UpdatedAt = now
 
 	return nil
 }
 
 func (dbm *mongodb_impl) CreateUser(ctx context.Context, firstName string, lastName string, email string, password string) (*User, error) {
-
 	user := &User{
-		firstName: firstName,
-		lastName:  lastName,
-		email:     email,
-		password:  password,
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+		Password:  password,
 	}
 
 	if err := user.BeforeCreate(); err != nil {
