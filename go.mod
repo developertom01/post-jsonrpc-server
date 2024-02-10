@@ -3,7 +3,7 @@ module github.com/developertom01/post-jsonrpc-server
 go 1.20
 
 require (
-	github.com/developertom01/json-rpc2 v0.0.0-20240210053655-e0615cc5c297
+	github.com/developertom01/json-rpc2 v1.0.1
 	github.com/rs/zerolog v1.32.0
 	go.mongodb.org/mongo-driver v1.13.1
 )
