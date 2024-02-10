@@ -13,7 +13,7 @@ COPY ./.air.toml .
 COPY ./go.mod .
 COPY ./go.sum .
 
-RUN go mod tidy
+RUN go mod download
 RUN go build -o /opt/app/main
 
 

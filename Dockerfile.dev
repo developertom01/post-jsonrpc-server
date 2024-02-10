@@ -12,9 +12,10 @@ COPY ./.air.toml .
 COPY ./go.mod .
 COPY ./go.sum .
 
-RUN go mod tidy
+RUN go mod download
 
 
 RUN go install github.com/cosmtrek/air@latest
+
 CMD [ "air" ]
 
