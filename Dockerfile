@@ -1,8 +1,18 @@
 FROM golang:1.21.5-alpine3.19 AS builder
 
+
+RUN apk update && apk add git && rm -rf /var/cache/apk/*
+
 WORKDIR /opt/app
 
-COPY . .
+COPY ./app .
+COPY ./config .
+COPY ./cmd .
+COPY ./internal .
+COPY ./.air.toml .
+COPY ./go.mod .
+COPY ./go.sum .
+
 RUN go mod tidy
 RUN go build -o /opt/app/main
 
