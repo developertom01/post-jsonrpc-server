@@ -7,6 +7,7 @@ import (
 
 	jsonrpc2 "github.com/developertom01/json-rpc2"
 	"github.com/developertom01/post-jsonrpc-server/app/service"
+	"github.com/developertom01/post-jsonrpc-server/utils"
 )
 
 type userService struct {
@@ -17,6 +18,42 @@ func NewUserService(service service.Service) *userService {
 	return &userService{
 		service: service,
 	}
+}
+
+func validateEmailInput(args map[string]any) (*string, []string) {
+	errors := make([]string, 0)
+
+	email, ok := args["email"]
+	if !ok {
+		errors = append(errors, "email does not exist")
+	}
+
+	emailString, ok := email.(string)
+	if !ok {
+		errors = append(errors, "email must be a string")
+	}
+
+	ok = utils.ValidateEmail(emailString)
+	if !ok {
+		errors = append(errors, "Invalid email provided")
+	}
+	return &emailString, errors
+}
+
+func validatePasswordInput(args map[string]any) (*string, []string) {
+	errors := make([]string, 0)
+
+	password, ok := args["password"]
+	if !ok {
+		errors = append(errors, "password does not exist")
+	}
+
+	passwordString, ok := password.(string)
+	if !ok {
+		errors = append(errors, "password must be a string")
+	}
+
+	return &passwordString, errors
 }
 
 func ValidateUserInput(args map[string]any) (*service.UserCreationInput, map[string][]string) {
@@ -41,31 +78,25 @@ func ValidateUserInput(args map[string]any) (*service.UserCreationInput, map[str
 		errors["lastName"] = append(errors["lastName"], "lastName must be a string")
 	}
 
-	email, ok := args["email"]
-	if !ok {
-		errors["email"] = []string{"email does not exist"}
+	email, emailErrors := validateEmailInput(args)
+	if emailErrors != nil && len(emailErrors) > 0 {
+		errors["email"] = emailErrors
 	}
 
-	emailString, ok := email.(string)
-	if !ok {
-		errors["email"] = append(errors["email"], "email must be a string")
+	password, passwordError := validatePasswordInput(args)
+	if passwordError != nil && len(passwordError) > 0 {
+		errors["password"] = passwordError
 	}
 
-	password, ok := args["password"]
-	if !ok {
-		errors["password"] = []string{"password does not exist"}
-	}
-
-	passwordString, ok := password.(string)
-	if !ok {
-		errors["password"] = append(errors["password"], "password must be a string")
+	if len(errors) > 1 {
+		return nil, errors
 	}
 
 	return &service.UserCreationInput{
 		FirstName: firstNameString,
-		Email:     emailString,
+		Email:     *email,
 		LastName:  lastNameString,
-		Password:  passwordString,
+		Password:  *password,
 	}, errors
 }
 
@@ -84,4 +115,48 @@ func (srv userService) CreateUser(ctx context.Context, args map[string]any) (*se
 	}
 
 	return user, nil, nil
+}
+
+func ValidateLoginInput(args map[string]any) (*service.LoginInput, map[string][]string) {
+	errors := make(map[string][]string)
+
+	email, emailErrors := validateEmailInput(args)
+
+	if emailErrors != nil && len(emailErrors) > 0 {
+		errors["email"] = emailErrors
+	}
+
+	password, passwordError := validatePasswordInput(args)
+	if passwordError != nil && len(passwordError) > 0 {
+		errors["password"] = passwordError
+	}
+
+	if len(errors) > 1 {
+		return nil, errors
+	}
+
+	return &service.LoginInput{
+		Email:    *email,
+		Password: *password,
+	}, nil
+}
+
+func (srv userService) Login(ctx context.Context, args map[string]any) (*service.LoginResponse, error, *jsonrpc2.RpcErrorCode) {
+	input, validationErrors := ValidateLoginInput(args)
+
+	if len(validationErrors) > 1 {
+		errStr, _ := json.Marshal(validationErrors)
+		code := jsonrpc2.INVALID_PARAMS
+
+		return nil, errors.New(string(errStr)), &code
+	}
+
+	loginResponse, err := srv.service.LoginUser(*input)
+
+	if err != nil {
+		code := jsonrpc2.INTERNAL_ERROR
+		return nil, err, &code
+	}
+
+	return loginResponse, nil, nil
 }

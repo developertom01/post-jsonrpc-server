@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -13,6 +14,8 @@ const USER_COLLECTION_NAME string = "users"
 type (
 	UserQueries interface {
 		CreateUser(ctx context.Context, firstName string, lastName string, email string, password string) (*User, error)
+
+		GetUserByEmail(ctx context.Context, email string) (*User, error)
 	}
 
 	User struct {
@@ -59,6 +62,21 @@ func (dbm *mongodb_impl) CreateUser(ctx context.Context, firstName string, lastN
 	col := dbm.doc.Collection(USER_COLLECTION_NAME)
 
 	_, err := col.InsertOne(ctx, user)
+
+	return user, err
+}
+
+func (dbm mongodb_impl) GetUserByEmail(ctx context.Context, email string) (*User, error) {
+	col := dbm.doc.Collection(USER_COLLECTION_NAME)
+	filter := bson.D{{
+		Key:   "email",
+		Value: email,
+	}}
+
+	user := &User{}
+
+	res := col.FindOne(ctx, filter)
+	err := res.Decode(&user)
 
 	return user, err
 }

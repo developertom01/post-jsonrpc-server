@@ -16,6 +16,9 @@ services:
      DATABASE_URL: mongodb://root:example@db:27017/
      DATABASE_NAME: "posts_db"
      APP_PORT: 8000
+     APP_NAME: Jsonrpcblog
+     REFRESH_TOKEN_SECRET: "sdasdasdasdasd"
+     ACCESS_TOKEN_SECRET: "sdasdasdasdasd---"
 
   db:
     image: mongo:4.4.27
