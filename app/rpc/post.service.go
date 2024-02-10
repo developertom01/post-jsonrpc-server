@@ -1,4 +1,4 @@
-package rpcservices
+package rpc
 
 import (
 	"github.com/developertom01/post-jsonrpc-server/app/service"
