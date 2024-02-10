@@ -9,6 +9,7 @@ COPY ./app .
 COPY ./config .
 COPY ./cmd .
 COPY ./internal .
+COPY ./utils .
 COPY ./.air.toml .
 COPY ./go.mod .
 COPY ./go.sum .

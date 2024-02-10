@@ -4,7 +4,7 @@ kill:
 test_arm:
 	docker-compose up -d test_db && go test ./... && docker-compose down
 
-dev-build:
+dev:
 	make gen && docker-compose up -d backend db mongo-express --build
 
 pre-test:

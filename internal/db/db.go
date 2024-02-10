@@ -5,5 +5,8 @@ type (
 		GetClient() any
 		GetDatabase() any
 		Disconnect()
+
+		//User queries
+		UserQueries
 	}
 )
