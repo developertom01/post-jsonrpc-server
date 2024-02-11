@@ -26,13 +26,13 @@ type (
 		Email     string             `bson:"email"`
 		Password  string             `bson:"password"`
 
-		CreatedAt primitive.DateTime `createdAt:"password"`
-		UpdatedAt primitive.DateTime `updatedAt:"password"`
+		CreatedAt primitive.DateTime `bson:"created_at"`
+		UpdatedAt primitive.DateTime `bson:"updated_at"`
 	}
 )
 
 func (u *User) BeforeCreate() error {
-	now := primitive.NewDateTimeFromTime(time.Now())
+	u.Id = primitive.NewObjectID()
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -40,7 +40,7 @@ func (u *User) BeforeCreate() error {
 	}
 	u.Password = string(hashedPassword)
 
-	u.Id = primitive.NewObjectID()
+	now := primitive.NewDateTimeFromTime(time.Now())
 	u.CreatedAt = now
 	u.UpdatedAt = now
 

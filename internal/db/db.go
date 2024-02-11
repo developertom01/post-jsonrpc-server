@@ -8,5 +8,8 @@ type (
 
 		//User queries
 		UserQueries
+
+		//Posts queries
+		PostQuery
 	}
 )
