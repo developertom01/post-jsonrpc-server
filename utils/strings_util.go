@@ -29,3 +29,10 @@ func ValidateEmail(email string) bool {
 
 	return regExp.MatchString(email)
 }
+
+func ValidateUrl(url string) bool {
+	pattern := `^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$`
+	regExp := regexp.MustCompile(pattern)
+
+	return regExp.MatchString(url)
+}

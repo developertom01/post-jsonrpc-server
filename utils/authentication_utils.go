@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -54,4 +55,8 @@ func ParseJwtToken(tokenString string, key string) (string, error) {
 
 	return claims.GetSubject()
 
+}
+
+func ExtractBearerToken(token string) string {
+	return strings.Replace(token, "Bearer ", "", 1)
 }

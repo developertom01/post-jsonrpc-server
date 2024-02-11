@@ -9,6 +9,7 @@ func registerRpcServices(service service.Service) map[string]any {
 
 	servicesMap["PostService"] = NewPostService(service)
 	servicesMap["UserService"] = NewUserService(service)
+	servicesMap["PostService"] = NewPostService(service)
 
 	return servicesMap
 }
