@@ -152,11 +152,21 @@ func (srv userService) Login(ctx context.Context, args map[string]any) (*service
 	}
 
 	loginResponse, err := srv.service.LoginUser(*input)
-
 	if err != nil {
 		code := jsonrpc2.INTERNAL_ERROR
 		return nil, err, &code
 	}
 
 	return loginResponse, nil, nil
+}
+
+func (srv userService) RefreshToken(ctx context.Context, refreshToken string) (*service.AuthToken, error, *jsonrpc2.RpcErrorCode) {
+	tokens, err := srv.service.RefreshToken(refreshToken)
+	if err != nil {
+		code := jsonrpc2.INTERNAL_ERROR
+		return nil, err, &code
+
+	}
+
+	return tokens, nil, nil
 }

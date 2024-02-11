@@ -16,6 +16,7 @@ type (
 		CreateUser(ctx context.Context, firstName string, lastName string, email string, password string) (*User, error)
 
 		GetUserByEmail(ctx context.Context, email string) (*User, error)
+		GetUserById(ctx context.Context, id string) (*User, error)
 	}
 
 	User struct {
@@ -79,4 +80,26 @@ func (dbm mongodb_impl) GetUserByEmail(ctx context.Context, email string) (*User
 	err := res.Decode(&user)
 
 	return user, err
+}
+
+func (dbm mongodb_impl) GetUserById(ctx context.Context, id string) (*User, error) {
+	col := dbm.doc.Collection(USER_COLLECTION_NAME)
+	idValue, err := primitive.ObjectIDFromHex(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	filter := bson.D{{
+		Key:   "_id",
+		Value: idValue,
+	}}
+
+	user := &User{}
+
+	res := col.FindOne(ctx, filter)
+	err = res.Decode(&user)
+
+	return user, err
+
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/developertom01/post-jsonrpc-server/config"
+	"github.com/developertom01/post-jsonrpc-server/internal/logger"
 	"github.com/developertom01/post-jsonrpc-server/utils"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -44,6 +45,8 @@ type (
 		CreateUser(input UserCreationInput) (*UserResponse, error)
 
 		LoginUser(input LoginInput) (*LoginResponse, error)
+
+		RefreshToken(refreshToken string) (*AuthToken, error)
 	}
 )
 
@@ -75,23 +78,13 @@ func (srv *service) LoginUser(input LoginInput) (*LoginResponse, error) {
 		return nil, errors.New("Wrong password")
 	}
 
-	refreshToken, err := utils.GenerateJwtToken(user.Id.Hex(), config.APP_NAME, config.REFRESH_TOKEN_SECRET, config.REFRESH_TOKEN_DURATION)
+	tokens, err := generateTokenPair(user.Id.Hex(), srv.logger)
 	if err != nil {
-		srv.logger.Error(err.Error())
-		return nil, errors.New("Failed to sign authentication token")
-	}
-
-	accessToken, err := utils.GenerateJwtToken(user.Id.Hex(), config.APP_NAME, config.ACCESS_TOKEN_SECRET, config.ACCESS_TOKEN_DURATION)
-	if err != nil {
-		srv.logger.Error(err.Error())
-		return nil, errors.New("Failed to sign authentication token")
+		return nil, err
 	}
 
 	return &LoginResponse{
-		Token: AuthToken{
-			RefreshToken: refreshToken,
-			AccessToken:  accessToken,
-		},
+		Token: *tokens,
 		User: UserResponse{
 			Id:        user.Id.Hex(),
 			FirstName: user.FirstName,
@@ -99,5 +92,43 @@ func (srv *service) LoginUser(input LoginInput) (*LoginResponse, error) {
 			Email:     user.Email,
 			CreatedAt: user.CreatedAt.Time(),
 		},
+	}, nil
+}
+
+func (srv service) RefreshToken(refreshToken string) (*AuthToken, error) {
+	subj, err := utils.ParseJwtToken(refreshToken, config.REFRESH_TOKEN_SECRET)
+	if err != nil {
+		srv.logger.Error(err.Error())
+		return nil, errors.New("Failed to decode token")
+	}
+
+	//Check if user is still in db
+	user, err := srv.db.GetUserById(context.TODO(), subj)
+
+	if err != nil {
+		srv.logger.Error(err.Error())
+
+		return nil, errors.New("User does not exist")
+	}
+
+	return generateTokenPair(user.Id.Hex(), srv.logger)
+}
+
+func generateTokenPair(userId string, logger logger.Logger) (*AuthToken, error) {
+	refreshToken, err := utils.GenerateJwtToken(userId, config.APP_NAME, config.REFRESH_TOKEN_SECRET, config.REFRESH_TOKEN_DURATION)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, errors.New("Failed to sign authentication token")
+	}
+
+	accessToken, err := utils.GenerateJwtToken(userId, config.APP_NAME, config.ACCESS_TOKEN_SECRET, config.ACCESS_TOKEN_DURATION)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, errors.New("Failed to sign authentication token")
+	}
+
+	return &AuthToken{
+		RefreshToken: refreshToken,
+		AccessToken:  accessToken,
 	}, nil
 }
