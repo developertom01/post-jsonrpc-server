@@ -45,7 +45,7 @@ func (srv *service) CreatePost(input CreatePostInput, userId string) (*PostsResp
 	post, err := srv.db.AddPost(context.TODO(), input.Title, input.Body, userId, input.Video, input.Image)
 	if err != nil {
 		srv.logger.Error(err.Error())
-		return nil, errors.New("Error while creating posts")
+		return nil, errors.New("Error while creating post")
 	}
 
 	return &PostsResponse{
@@ -63,7 +63,7 @@ func (srv *service) EditPost(id string, input EditPostInput, userId string) (*Po
 	post, err := srv.db.EditPost(context.TODO(), id, input.Title, input.Body, input.Video, input.Image, userId)
 	if err != nil {
 		srv.logger.Error(err.Error())
-		return nil, errors.New("Error while creating posts")
+		return nil, errors.New("Error while updating post")
 	}
 
 	return &PostsResponse{
