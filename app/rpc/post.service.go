@@ -23,62 +23,23 @@ func NewPostService(service service.Service) *postService {
 func validateCreatePostInput(input map[string]any) (*service.CreatePostInput, map[string][]string) {
 	errors := make(map[string][]string)
 
-	title, ok := input["title"]
-	if !ok {
-		errors["title"] = []string{"title is required"}
-	}
+	title := utils.ValidateRequiredStringField("title", input, errors)
 
-	titleString, ok := title.(string)
-	if !ok {
-		errors["title"] = append(errors["title"], "title must be a string")
-	}
+	body := utils.ValidateRequiredStringField("body", input, errors)
 
-	body, ok := input["body"]
-	if !ok {
-		errors["body"] = []string{"body is required"}
-	}
-	bodyString, ok := body.(string)
-	if !ok {
-		errors["body"] = append(errors["body"], "body must be a string")
-	}
+	image := utils.ValidateUrlField("image", input, errors)
 
-	image, ok := input["image"]
-	var imageString *string
-	if ok {
-		imageStr, ok := image.(string)
-		if !ok {
-			errors["image"] = []string{"image must be a string"}
-		}
+	video := utils.ValidateUrlField("video", input, errors)
 
-		ok = utils.ValidateUrl(imageStr)
-
-		if !ok {
-			errors["image"] = append(errors["image"], "image must be a valid url")
-		}
-		imageString = &imageStr
-	}
-
-	video, ok := input["video"]
-	var videoString *string
-	if ok {
-		videoStr, ok := video.(string)
-		if !ok {
-			errors["video"] = []string{"video must be a string"}
-		}
-
-		ok = utils.ValidateUrl(videoStr)
-
-		if !ok {
-			errors["video"] = append(errors["video"], "video must be a valid url")
-		}
-		videoString = &videoStr
+	if len(errors) > 0 {
+		return nil, errors
 	}
 
 	return &service.CreatePostInput{
-		Title: titleString,
-		Body:  bodyString,
-		Image: imageString,
-		Video: videoString,
+		Title: *title,
+		Body:  *body,
+		Image: image,
+		Video: video,
 	}, errors
 }
 
@@ -103,6 +64,50 @@ func (ps *postService) CreatePost(ctx context.Context, input map[string]any) (*s
 		code := jsonrpc2.INTERNAL_ERROR
 
 		return nil, errors.New("Failed to Create Post"), &code
+	}
+
+	return post, nil, nil
+}
+
+func validateEditPostInput(input map[string]any) (*service.EditPostInput, map[string][]string) {
+	errors := make(map[string][]string)
+
+	title := utils.ValidateStringField("title", input, errors)
+
+	body := utils.ValidateStringField("body", input, errors)
+
+	image := utils.ValidateUrlField("image", input, errors)
+
+	video := utils.ValidateUrlField("video", input, errors)
+
+	return &service.EditPostInput{
+		Title: title,
+		Body:  body,
+		Image: image,
+		Video: video,
+	}, errors
+}
+
+func (ps *postService) EditPost(ctx context.Context, id string, input map[string]any) (*service.PostsResponse, error, *jsonrpc2.RpcErrorCode) {
+	user, err := ps.service.HandleAuthorization(ctx)
+	if err != nil {
+		code := jsonrpc2.INTERNAL_ERROR
+
+		return nil, err, &code
+	}
+
+	editPostInput, valErrors := validateEditPostInput(input)
+	if len(valErrors) > 0 {
+		errorsJson, _ := json.Marshal(valErrors)
+		code := jsonrpc2.INVALID_PARAMS
+
+		return nil, errors.New(string(errorsJson)), &code
+	}
+
+	post, err := ps.service.EditPost(id, *editPostInput, user.Id.Hex())
+	if err != nil {
+		code := jsonrpc2.INTERNAL_ERROR
+		return nil, err, &code
 	}
 
 	return post, nil, nil
