@@ -7,6 +7,7 @@ import (
 
 	jsonrpc2 "github.com/developertom01/jsonrpc2"
 	"github.com/developertom01/post-jsonrpc-server/app/service"
+	"github.com/developertom01/post-jsonrpc-server/internal/db"
 	"github.com/developertom01/post-jsonrpc-server/utils"
 )
 
@@ -69,6 +70,23 @@ func (ps *postService) CreatePost(ctx context.Context, input map[string]any) (*s
 	return post, nil, nil
 }
 
+func validateStatusField(input map[string]any, errors map[string][]string) *db.PostStatus {
+	status, ok := input["status"]
+	if !ok {
+		return nil
+	}
+
+	statusString, ok := status.(string)
+	if !ok {
+		errors["status"] = append(errors["status"], "Invalid post status")
+		return nil
+	}
+
+	postStatus := db.PostStatus(statusString)
+
+	return &postStatus
+}
+
 func validateEditPostInput(input map[string]any) (*service.EditPostInput, map[string][]string) {
 	errors := make(map[string][]string)
 
@@ -80,11 +98,14 @@ func validateEditPostInput(input map[string]any) (*service.EditPostInput, map[st
 
 	video := utils.ValidateUrlField("video", input, errors)
 
+	status := validateStatusField(input, errors)
+
 	return &service.EditPostInput{
-		Title: title,
-		Body:  body,
-		Image: image,
-		Video: video,
+		Title:  title,
+		Body:   body,
+		Image:  image,
+		Video:  video,
+		Status: status,
 	}, errors
 }
 

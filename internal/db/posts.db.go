@@ -14,13 +14,15 @@ const POSTS_COLLECTION_NAME = "posts"
 
 type (
 	Post struct {
-		Id        primitive.ObjectID `bson:"_id"`
-		Title     string             `bson:"title"`
-		Body      string             `bson:"body"`
-		UserId    primitive.ObjectID `bson:"user_id"`
-		Video     *string            `bson:"video,omitempty"`
-		Image     *string            `bson:"image,omitempty"`
-		Slug      string             `bson:"slug"`
+		Id     primitive.ObjectID `bson:"_id"`
+		Title  string             `bson:"title"`
+		Body   string             `bson:"body"`
+		UserId primitive.ObjectID `bson:"user_id"`
+		Video  *string            `bson:"video,omitempty"`
+		Image  *string            `bson:"image,omitempty"`
+		Slug   string             `bson:"slug"`
+		Status PostStatus         `bson:"status"`
+
 		CreatedAt primitive.DateTime `bson:"create_at"`
 		UpdatedAt primitive.DateTime `bson:"updated_at"`
 	}
@@ -28,13 +30,24 @@ type (
 	PostQuery interface {
 		AddPost(ctx context.Context, title string, body string, userId string, video *string, image *string) (*Post, error)
 
-		EditPost(ctx context.Context, id string, title *string, body *string, video *string, image *string, userId string) (*Post, error)
+		EditPost(ctx context.Context, id string, title *string, body *string, video *string, image *string, status *PostStatus, userId string) (*Post, error)
 	}
+
+	PostStatus string
 )
+
+const (
+	POST_STATUS_PENDING   PostStatus = "P"
+	POST_STATUS_PUBLISHED PostStatus = "PB"
+	POST_STATUS_ARCHIVED  PostStatus = "A"
+)
+
+var POST_STATUSES = []PostStatus{POST_STATUS_PENDING, POST_STATUS_PUBLISHED, POST_STATUS_ARCHIVED}
 
 func (p *Post) BeforeCreate() {
 
 	p.Id = primitive.NewObjectID()
+	p.Status = POST_STATUS_PENDING
 
 	now := primitive.NewDateTimeFromTime(time.Now())
 	p.CreatedAt = now
@@ -65,7 +78,7 @@ func (dbm *mongodb_impl) AddPost(ctx context.Context, title string, body string,
 	return &post, err
 }
 
-func (mdb mongodb_impl) EditPost(ctx context.Context, id string, title *string, body *string, video *string, image *string, userId string) (*Post, error) {
+func (mdb mongodb_impl) EditPost(ctx context.Context, id string, title *string, body *string, video *string, image *string, status *PostStatus, userId string) (*Post, error) {
 	col := mdb.doc.Collection(POSTS_COLLECTION_NAME)
 
 	idHex, err := primitive.ObjectIDFromHex(id)
@@ -102,6 +115,10 @@ func (mdb mongodb_impl) EditPost(ctx context.Context, id string, title *string, 
 
 	if image != nil {
 		updater = append(updater, bson.E{Key: "$set", Value: bson.D{{Key: "image", Value: *image}}})
+	}
+
+	if status != nil {
+		updater = append(updater, bson.E{Key: "$set", Value: bson.D{{Key: "status", Value: *status}}})
 	}
 
 	_, err = col.UpdateOne(ctx, filter, updater)
