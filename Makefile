@@ -5,7 +5,7 @@ test_arm:
 	docker-compose up -d test_db && go test ./... && docker-compose down
 
 dev:
-	make gen && docker-compose up -d backend db mongo-express --build
+	docker-compose up -d backend db mongo-express --build
 
 pre-test:
 	docker-compose up -d test_db test-mongo-express

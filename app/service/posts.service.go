@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"time"
+
+	"github.com/developertom01/post-jsonrpc-server/internal/db"
 )
 
 type (
@@ -15,21 +17,23 @@ type (
 	}
 
 	EditPostInput struct {
-		Title *string `json:"title,omitempty"`
-		Body  *string `json:"body,omitempty"`
-		Image *string `json:"image,omitempty"`
-		Video *string `json:"video,omitempty"`
+		Title  *string        `json:"title,omitempty"`
+		Body   *string        `json:"body,omitempty"`
+		Image  *string        `json:"image,omitempty"`
+		Video  *string        `json:"video,omitempty"`
+		Status *db.PostStatus `json:"status,omitempty"`
 	}
 
 	PostsResponse struct {
-		Id        string    `json:"id"`
-		Title     string    `json:"title"`
-		Body      string    `json:"body"`
-		Slug      string    `json:"slug"`
-		Image     *string   `json:"image,omitempty"`
-		Video     *string   `json:"video,omitempty"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
+		Id        string        `json:"id"`
+		Title     string        `json:"title"`
+		Body      string        `json:"body"`
+		Slug      string        `json:"slug"`
+		Image     *string       `json:"image,omitempty"`
+		Video     *string       `json:"video,omitempty"`
+		Status    db.PostStatus `json:"status"`
+		CreatedAt time.Time     `json:"created_at"`
+		UpdatedAt time.Time     `json:"updated_at"`
 
 		User *UserResponse `json:"user,omitempty"`
 	}
@@ -60,7 +64,7 @@ func (srv *service) CreatePost(input CreatePostInput, userId string) (*PostsResp
 }
 
 func (srv *service) EditPost(id string, input EditPostInput, userId string) (*PostsResponse, error) {
-	post, err := srv.db.EditPost(context.TODO(), id, input.Title, input.Body, input.Video, input.Image, userId)
+	post, err := srv.db.EditPost(context.TODO(), id, input.Title, input.Body, input.Video, input.Image, input.Status, userId)
 	if err != nil {
 		srv.logger.Error(err.Error())
 		return nil, errors.New("Error while updating post")
@@ -71,6 +75,7 @@ func (srv *service) EditPost(id string, input EditPostInput, userId string) (*Po
 		Title:     post.Title,
 		Body:      post.Body,
 		Slug:      post.Slug,
+		Status:    post.Status,
 		Image:     post.Image,
 		Video:     post.Video,
 		CreatedAt: post.CreatedAt.Time(),
