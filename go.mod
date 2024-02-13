@@ -3,7 +3,6 @@ module github.com/developertom01/post-jsonrpc-server
 go 1.20
 
 require (
-	github.com/developertom01/json-rpc2 v1.0.8
 	github.com/go-chi/chi/v5 v5.0.11
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/rs/zerolog v1.32.0
@@ -14,6 +13,7 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/developertom01/jsonrpc2 v0.0.1 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect

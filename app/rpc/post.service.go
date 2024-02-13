@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	jsonrpc2 "github.com/developertom01/json-rpc2"
+	jsonrpc2 "github.com/developertom01/jsonrpc2"
 	"github.com/developertom01/post-jsonrpc-server/app/service"
 	"github.com/developertom01/post-jsonrpc-server/utils"
 )
